@@ -2,7 +2,7 @@ FROM tomcat:9.0-jdk17-temurin
 
 # Fresh ROOT app = our portal
 RUN rm -rf /usr/local/tomcat/webapps/*
-COPY portal/ /usr/local/tomcat/webapps/ROOT/
+COPY . /usr/local/tomcat/webapps/ROOT/
 
 # PostgreSQL JDBC driver (downloaded at build time from Maven Central)
 ADD https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar /usr/local/tomcat/webapps/ROOT/WEB-INF/lib/postgresql-42.7.3.jar
