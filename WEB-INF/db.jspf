@@ -1,0 +1,48 @@
+<%@ page import="java.net.URI" %>
+<%!
+    // ---- Database connection for the hosted (PostgreSQL) version ----
+    // Render supplies DATABASE_URL (postgres://user:password@host:port/dbname).
+    // For local testing set DB_URL, DB_USER and DB_PASSWORD instead.
+    private static boolean schemaChecked = false;
+
+    static synchronized Connection openConn() throws Exception {
+        Class.forName("org.postgresql.Driver");
+        String url, user, pass;
+        String dbUrl = System.getenv("DATABASE_URL");
+        if (dbUrl != null && !dbUrl.isEmpty()) {
+            URI u = new URI(dbUrl.replaceFirst("^postgresql:", "postgres:"));
+            String[] ui = u.getUserInfo().split(":", 2);
+            user = java.net.URLDecoder.decode(ui[0], "UTF-8");
+            pass = ui.length > 1 ? java.net.URLDecoder.decode(ui[1], "UTF-8") : "";
+            int port = u.getPort() == -1 ? 5432 : u.getPort();
+            url = "jdbc:postgresql://" + u.getHost() + ":" + port + u.getPath();
+        } else {
+            url = System.getenv("DB_URL") != null ? System.getenv("DB_URL") : "jdbc:postgresql://localhost:5432/placement";
+            user = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "postgres";
+            pass = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "";
+        }
+        java.util.Properties props = new java.util.Properties();
+        props.setProperty("user", user);
+        props.setProperty("password", pass);
+        // Render's internal database address needs no SSL; the external one does.
+        if (url.contains(".render.com")) props.setProperty("sslmode", "require");
+        Connection c = DriverManager.getConnection(url, props);
+        if (!schemaChecked) {
+            Statement st = c.createStatement();
+            ResultSet rs = st.executeQuery("SELECT to_regclass('public.department') IS NOT NULL");
+            rs.next();
+            boolean exists = rs.getBoolean(1);
+            rs.close(); st.close();
+            if (!exists) {
+                String script = new String(java.nio.file.Files.readAllBytes(
+                    java.nio.file.Paths.get(System.getProperty("catalina.base", ".") + "/webapps/ROOT/WEB-INF/schema.sql")),
+                    "UTF-8");
+                Statement ss = c.createStatement();
+                ss.execute(script);
+                ss.close();
+            }
+            schemaChecked = true;
+        }
+        return c;
+    }
+%>

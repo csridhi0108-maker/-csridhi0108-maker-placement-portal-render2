@@ -1,0 +1,9 @@
+<div class="topbar">
+    <div class="brand">Placement <span>Portal</span> &mdash; Admin</div>
+    <div class="logout-link">
+        <a href="dashboard.jsp">Drives</a> &nbsp;|&nbsp;
+        <a href="students.jsp">Students</a> &nbsp;|&nbsp;
+        <a href="reports.jsp">Reports</a> &nbsp;|&nbsp;
+        <a href="logout.jsp">Log out</a>
+    </div>
+</div>

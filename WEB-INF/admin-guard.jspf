@@ -1,0 +1,7 @@
+<%
+    // Only a logged-in placement-cell user may open admin pages.
+    if (session.getAttribute("admin") == null) {
+        response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
+        return;
+    }
+%>
